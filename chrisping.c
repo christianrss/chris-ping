@@ -1,6 +1,56 @@
 /* chrisping.c */
 #include "chrisping.h"
 
+int16 checksum(int8 *pkt, int16 size);
+
+int8 *evalicmp(icmp *pkt) {
+    int8 *p, *ret;
+    int16 size;
+    struct s_rawicmp rawpkt;
+    struct s_rawicmp *rawptr;
+    int16 check;
+
+    if (!pkt || !pkt->data)
+        return $1 0;
+
+    switch (pkt->kind) {
+        case echo:
+            rawpkt.type = 8;
+            rawpkt.code = 0;
+            break;
+    
+        case echoreply:
+            rawpkt.type = 0;
+            rawpkt.code = 0;
+
+            break;
+
+        default:
+            return $1 0;
+            break;
+    }
+
+    rawpkt.checksum = 0;
+    size = sizeof(struct s_rawicmp) + pkt->size;
+    if (size%2)
+        size++;
+
+    p = $1 malloc($i size);
+    ret = p;
+    assert(p);
+    zero($1 p, size);
+
+    copy(p, $1 &rawpkt, sizeof(struct s_rawicmp));
+    p += sizeof(struct s_rawicmp);
+    copy(p, pkt->data, pkt->size);
+
+    check = checksum(ret, size);
+    rawptr = (struct s_rawicmp *)ret;
+    rawptr->checksum = check;
+
+    return ret;
+}
+
 void copy(int8 *dst, int8* src, int16 size) {
     int16 n;
     int8 *sptr, *dptr;
@@ -11,7 +61,7 @@ void copy(int8 *dst, int8* src, int16 size) {
     return;
 }
 
-icmp *mkicmp(int8 type, int8 code, int8 *data, int16 size) {
+icmp *mkicmp(type kind, const int8 *data, int16 size) {
     int16 n;
     icmp *p;
 
@@ -23,13 +73,25 @@ icmp *mkicmp(int8 type, int8 code, int8 *data, int16 size) {
     assert(p);
     zero($1 p, n);
 
-    p->type = type;
-    p->code = code;
-
-    copy($1 &p->data, data, size);
-    p->checksum = checksum(p);
+    p->kind = kind;
+    p->size = size;
+    p->data = data;
 
     return p;
+}
+
+void showicmp(icmp *pkt) {
+    if (!icmp)
+        return;
+
+    printf("kind:\t %s\nsize:\t %d\npayload:\n",
+        (pkt->kind == echo) ? "echo" : "echo reply",
+        $i pkt->size);
+    if (pkt->data)
+        printhex(pkt->data, pkt->size, 0);
+    printf("\n");
+
+    return;
 }
 
 int main(int argc, char *argv[]) {
