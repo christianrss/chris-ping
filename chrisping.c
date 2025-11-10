@@ -91,13 +91,13 @@ icmp *mkicmp(type kind, const int8 *data, int16 size) {
 
     p->kind = kind;
     p->size = size;
-    p->data = data;
+    p->data = $1 data;
 
     return p;
 }
 
 void showicmp(icmp *pkt) {
-    if (!icmp)
+    if (!pkt)
         return;
 
     printf("kind:\t %s\nsize:\t %d\npayload:\n",
@@ -111,6 +111,27 @@ void showicmp(icmp *pkt) {
 }
 
 int main(int argc, char *argv[]) {
+    int8 *str;
+    int8 *raw;
+    icmp *pkt;
+    int16 size;
+
+    str = $1 malloc(6);
+    assert(str);
+    zero(str, $2 6);
+    strncpy($c str, "Hello", 5);
+
+    pkt = mkicmp(echo, str, $2 5);
+    assert(pkt);
+    showicmp(pkt);
+
+    raw = evalicmp(pkt);
+    assert(raw);
+    size = sizeof(struct s_rawicmp) + pkt->size;
+
+    printhex(raw, size, 0);
+    free(pkt->data);
+    free(pkt);
     
     return 0;
 }

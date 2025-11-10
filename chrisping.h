@@ -9,7 +9,7 @@
 #include <errno.h>
 #include <chrisutils.h>
 
-#define packed __attributes__((packed))
+#define packed __attribute__((packed))
 
 typedef unsigned char int8;
 typedef unsigned short int int16;
@@ -50,6 +50,6 @@ void copy(int8*,int8*,int16);
 int16 checksum(int8*,int16);
 
 // icmp
-icmp *mkicmp(type,const int8,int16);
+icmp *mkicmp(type,const int8*,int16);
 int8 *evalicmp(icmp*);
 void showicmp(icmp*);
