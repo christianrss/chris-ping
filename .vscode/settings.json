@@ -1,7 +1,0 @@
-{
-    "files.associations": {
-        "chrisutils.h": "c",
-        "in.h": "c",
-        "socket.h": "c"
-    }
-}
