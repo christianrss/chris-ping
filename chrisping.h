@@ -33,3 +33,4 @@ typedef struct s_icmp icmp;
 icmp *mkicmp(int8,int8,int8*,int16);
 
 int main(int,char**);
+void copy(int8*,int8*,int16);

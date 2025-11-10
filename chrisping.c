@@ -1,6 +1,16 @@
 /* chrisping.c */
 #include "chrisping.h"
 
+void copy(int8 *dst, int8* src, int16 size) {
+    int16 n;
+    int8 *sptr, *dptr;
+
+    for (dptr=dst, sptr=src, n=size; n; n--)
+        *dptr++ = *sptr++;
+
+    return;
+}
+
 icmp *mkicmp(int8 type, int8 code, int8 *data, int16 size) {
     int16 n;
     icmp *p;
@@ -15,7 +25,11 @@ icmp *mkicmp(int8 type, int8 code, int8 *data, int16 size) {
 
     p->type = type;
     p->code = code;
+
+    copy($1 &p->data, data, size);
     p->checksum = checksum(p);
+
+    return p;
 }
 
 int main(int argc, char *argv[]) {
