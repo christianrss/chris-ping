@@ -1,7 +1,23 @@
 /* chrisping.c */
 #include "chrisping.h"
 
-int16 checksum(int8 *pkt, int16 size);
+int16 checksum(int8 *pkt, int16 size) {
+    int16 *p;
+    int32 acc, b;
+    int16 carry;
+    int16 n;
+    int16 sum;
+
+    acc = 0;
+    for (n=size, p = (int16 *)pkt; n; n -= 2, p++) {
+        b = *p;
+        acc += b;
+    }
+    carry = ((acc & 0xffff0000)>>16);
+    sum = (acc & 0x0000ffff);
+
+    return ~(sum+carry);
+}
 
 int8 *evalicmp(icmp *pkt) {
     int8 *p, *ret;
@@ -95,5 +111,6 @@ void showicmp(icmp *pkt) {
 }
 
 int main(int argc, char *argv[]) {
+    
     return 0;
 }
