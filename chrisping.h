@@ -22,4 +22,14 @@ typedef unsigned long long int64;
 #define $c (char *)
 #define $i (int)
 
+struct s_icmp {
+    int8 type;
+    int8 code;
+    int16 checksum;
+    int8 data[];
+};
+typedef struct s_icmp icmp;
+
+icmp *mkicmp(int8,int8,int8*,int16);
+
 int main(int,char**);
