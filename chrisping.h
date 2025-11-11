@@ -48,6 +48,7 @@ typedef struct s_icmp icmp;
 int main(int,char**);
 void copy(int8*,int8*,int16);
 int16 checksum(int8*,int16);
+int16 endian(int16);
 
 // icmp
 icmp *mkicmp(type,const int8*,int16);

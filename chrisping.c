@@ -1,12 +1,26 @@
 /* chrisping.c */
 #include "chrisping.h"
 
+// 
+int16 endian16(int16 x) {
+    int8 a, b;
+    int16 y;
+
+    b = (x & 0x00ff);
+    a = ((x & 0xff00)>>8);
+    y = (b << 8)
+            | a;
+
+    return y;
+}
+
 int16 checksum(int8 *pkt, int16 size) {
     int16 *p;
     int32 acc, b;
     int16 carry;
     int16 n;
     int16 sum;
+    int16 ret;
 
     acc = 0;
     for (n=size, p = (int16 *)pkt; n; n -= 2, p++) {
@@ -16,7 +30,9 @@ int16 checksum(int8 *pkt, int16 size) {
     carry = ((acc & 0xffff0000)>>16);
     sum = (acc & 0x0000ffff);
 
-    return ~(sum+carry);
+    ret = ~(sum+carry);
+
+    return endian16(ret);
 }
 
 int8 *evalicmp(icmp *pkt) {
