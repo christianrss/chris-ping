@@ -1,7 +1,52 @@
 /* chrisping.c */
 #include "chrisping.h"
 
-// 
+ip *mkip(type kind, const int8 *src, const int8 *dst, int16 id_, int16 *cntptr) {
+    int16 id;
+    int16 size;
+    ip *pkt;
+
+    if (!kind || !src || !dst)
+        return (ip *)0;
+    
+    if (id_)
+        id = id_;
+    else
+        id = *cntptr++;
+
+    size = sizeof(struct s_ip);
+    pkt = (ip *)malloc($i size);
+    assert(pkt);
+    zero($1 pkt, size);
+
+    pkt->kind = kind;
+    pkt->id = id;
+    pkt->src = inet_addr($c src);
+    pkt->dst = inet_addr($c dst);
+
+    if (!pkt->dst) {
+        free(pkt);
+        return (ip*)0;
+    }
+
+    return pkt;
+}
+
+void showip(int8 *ident, ip *pkt) {
+    if (!pkt)
+        return;
+
+    printf("(ip *)%s = {\n", $c ident);
+    printf(" kind:\t 0x%.02hhx\n", (char)pkt->kind);
+    printf(" id:\t 0x%.02hhx\n", $i pkt->id);
+    printf(" src:\t %s\n", $c todotted(pkt->src));
+    printf(" dst:\t %s\n", $c todotted(pkt->dst));
+    printf("}\n");
+
+    return;
+}
+
+// 0xaabb
 int16 endian16(int16 x) {
     int8 a, b;
     int16 y;
@@ -112,11 +157,12 @@ icmp *mkicmp(type kind, const int8 *data, int16 size) {
     return p;
 }
 
-void showicmp(icmp *pkt) {
+void showicmp(int8 *ident, icmp *pkt) {
     if (!pkt)
         return;
 
-    printf("kind:\t %s\nsize:\t %d\npayload:\n",
+    printf("(icmp *)%s = {\n", $c ident);
+    printf("  kind:\t  %s\n  size:\t  %d\n}\npayload:\n",
         (pkt->kind == echo) ? "echo" : "echo reply",
         $i pkt->size);
     if (pkt->data)
@@ -131,6 +177,11 @@ int main(int argc, char *argv[]) {
     int8 *raw;
     icmp *pkt;
     int16 size;
+    int16 rnd;
+
+    (void)rnd;
+    srand(getpid());
+    rnd = (rand() % 50000);
 
     str = $1 malloc(6);
     assert(str);
@@ -139,7 +190,7 @@ int main(int argc, char *argv[]) {
 
     pkt = mkicmp(echo, str, $2 5);
     assert(pkt);
-    showicmp(pkt);
+    show(pkt);
 
     raw = evalicmp(pkt);
     assert(raw);
