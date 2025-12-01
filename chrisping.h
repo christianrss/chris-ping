@@ -90,4 +90,5 @@ void showicmp(int8*,icmp*);
 
 // ip
 ip *mkip(type,const int8*,const int8*,int16,int16*);
+int8 *evalip(ip*);
 void showip(int8*,ip*);
