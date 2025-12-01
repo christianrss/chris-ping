@@ -54,10 +54,11 @@ struct s_icmp {
 typedef struct s_icmp icmp;
 
 struct s_ip {
+    type kind:3;
     int32 src;
     int32 dst;
     int16 id;
-    type kind:3;
+    icmp *payload;
 } packed;
 typedef struct s_ip ip;
 

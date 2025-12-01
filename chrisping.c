@@ -23,6 +23,7 @@ ip *mkip(type kind, const int8 *src, const int8 *dst, int16 id_, int16 *cntptr) 
     pkt->id = id;
     pkt->src = inet_addr($c src);
     pkt->dst = inet_addr($c dst);
+    pkt->payload = (icmp *)0;
 
     if (!pkt->dst) {
         free(pkt);
@@ -42,6 +43,9 @@ void showip(int8 *ident, ip *pkt) {
     printf(" src:\t %s\n", $c todotted(pkt->src));
     printf(" dst:\t %s\n", $c todotted(pkt->dst));
     printf("}\n");
+
+    if (pkt->payload)
+        show(pkt->payload);
 
     return;
 }
@@ -86,11 +90,28 @@ int8 *evalip(ip *pkt) {
     int16 check;
     int16 size;
     int8 *p, *ret;
+    int8 protocol;
 
     if (!pkt)
         return $1 0;
-    
-    
+
+    protocol = 0;
+    switch(pkt->kind) {
+        case L4icmp:
+            protocol = 1;
+            break;
+        default:
+            return $1 0;
+            break;
+    }
+
+    rawpkt.checksum = 0;
+    rawpkt.dscp = 0;
+    rawpkt.dst = pkt->dst;
+    rawpkt.ecn = 0;
+    rawpkt.flags = 0;
+    rawpkt.id = endian16(pkt->id);
+    //rawpkt.ihl = 
 }
 
 int8 *evalicmp(icmp *pkt) {
