@@ -80,6 +80,19 @@ int16 checksum(int8 *pkt, int16 size) {
     return endian16(ret);
 }
 
+int8 *evalip(ip *pkt) {
+    struct s_rawip rawpkt;
+    struct s_rawip *rawptr;
+    int16 check;
+    int16 size;
+    int8 *p, *ret;
+
+    if (!pkt)
+        return $1 0;
+    
+    
+}
+
 int8 *evalicmp(icmp *pkt) {
     int8 *p, *ret;
     int16 size;
