@@ -252,9 +252,10 @@ void showicmp(int8 *ident, icmp *pkt) {
 int main(int argc, char *argv[]) {
     int8 *str;
     int8 *raw;
-    icmp *pkt;
-    int16 size;
+    icmp *icmppkt;
     int16 rnd;
+    ip *ippkt;
+    int16 size;
 
     (void)rnd;
     srand(getpid());
@@ -265,17 +266,22 @@ int main(int argc, char *argv[]) {
     zero(str, $2 6);
     strncpy($c str, "Hello", 5);
 
-    pkt = mkicmp(echo, str, $2 5);
-    assert(pkt);
-    show(pkt);
+    icmppkt = mkicmp(echo, str, $2 5);
+    assert(icmppkt);
 
-    raw = evalicmp(pkt);
-    assert(raw);
-    size = sizeof(struct s_rawicmp) + pkt->size;
+    ippkt = mkip(L4icmp, $1 "192.168.10.5", $1 "8.8.8.8", 0, &rnd);
+    assert(ippkt);
+    ippkt->payload = icmppkt;
 
-    printhex(raw, size, 0);
-    free(pkt->data);
-    free(pkt);
+    raw = evalip(ippkt);
+    size = sizeof(struct s_rawip) + sizeof(struct s_rawicmp)
+        + ippkt->payload->size;
+    show(ippkt);
+    printhex(raw, size, ' ');
+
+    free(icmppkt->data);
+    free(icmppkt);
+    free(ippkt);
     
     return 0;
 }
