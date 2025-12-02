@@ -23,6 +23,7 @@ ip *mkip(type kind, const int8 *src, const int8 *dst, int16 id_, int16 *cntptr) 
     pkt->id = id;
     pkt->src = inet_addr($c src);
     pkt->dst = inet_addr($c dst);
+    pkt->payload = (icmp *)0;
 
     if (!pkt->dst) {
         free(pkt);
@@ -42,6 +43,9 @@ void showip(int8 *ident, ip *pkt) {
     printf(" src:\t %s\n", $c todotted(pkt->src));
     printf(" dst:\t %s\n", $c todotted(pkt->dst));
     printf("}\n");
+
+    if (pkt->payload)
+        show(pkt->payload);
 
     return;
 }
@@ -84,13 +88,73 @@ int8 *evalip(ip *pkt) {
     struct s_rawip rawpkt;
     struct s_rawip *rawptr;
     int16 check;
-    int16 size;
     int8 *p, *ret;
+    int8 protocol;
+    int16 lengthle;
+    int16 lengthbe;
+    int8 *icmpptr;
+    int16 size;
 
     if (!pkt)
         return $1 0;
-    
-    
+
+    protocol = 0;
+    switch(pkt->kind) {
+        case L4icmp:
+            protocol = 1;
+            break;
+        default:
+            return $1 0;
+            break;
+    }
+
+    rawpkt.checksum = 0;
+    rawpkt.dscp = 0;
+    rawpkt.dst = pkt->dst;
+    rawpkt.ecn = 0;
+    rawpkt.flags = 0;
+    rawpkt.id = endian16(pkt->id);
+    rawpkt.ihl = (sizeof(struct s_rawip)/4);
+
+    lengthle = 0;
+    if (pkt->payload) {
+        lengthle = (rawpkt.ihl*4) + pkt->payload->size
+            + sizeof(struct s_rawicmp);
+        lengthbe = endian16(lengthle);
+        rawpkt.length = lengthbe;
+    } else
+        lengthle = rawpkt.length = (rawpkt.ihl*4);
+
+    rawpkt.offset = 0;
+    rawpkt.protocol = protocol;
+    rawpkt.src = pkt->src;
+    rawpkt.ttl = 250;
+    rawpkt.version = 4;
+
+    if (lengthle%2)
+        lengthle++;
+
+    size = sizeof(struct s_rawip);
+    p = $1 malloc($i lengthle);
+    ret = p;
+    assert(p);
+    zero(p, lengthle);
+    copy(p, $1 &rawpkt, size);
+    p += size;
+
+    if (pkt->payload) {
+        icmpptr = evalicmp(pkt->payload);
+        if (icmpptr) {
+            copy(p, icmpptr, pkt->payload->size);
+            free(icmpptr);
+        }
+    }
+
+    check = checksum(ret, lengthle);
+    rawptr = (struct s_rawip *)ret;
+    rawptr->checksum = check;
+
+    return ret;
 }
 
 int8 *evalicmp(icmp *pkt) {
