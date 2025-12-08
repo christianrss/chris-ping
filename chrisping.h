@@ -17,8 +17,13 @@ typedef unsigned int int32;
 typedef unsigned long long int64;
 
 #define show(x) _Generic((x),           \
-    ip*:    showip($1 # x, (ip *)x),    \
-    icmp*:  showicmp($1 # x, (icmp *)x) \
+    ip*:    showip($1 # x, (ip *)(x)),    \
+    icmp*:  showicmp($1 # x, (icmp *)(x)) \
+)
+
+#define eval(x) _Generic((x), \
+    ip*:    evalip((ip *)(x)), \
+    icmp*:  evalicmp((icmp *)(x)) \
 )
 
 #define $1 (int8 *)
@@ -82,7 +87,9 @@ struct s_rawip {
 int main(int,char**);
 void copy(int8*,int8*,int16);
 int16 checksum(int8*,int16);
-int16 endian(int16);
+int32 setup(void);
+
+int16 endian16(int16);
 
 // icmp
 icmp *mkicmp(type,const int8*,int16);
@@ -93,3 +100,4 @@ void showicmp(int8*,icmp*);
 ip *mkip(type,const int8*,const int8*,int16,int16*);
 int8 *evalip(ip*);
 void showip(int8*,ip*);
+bool sendip(int32,ip*);

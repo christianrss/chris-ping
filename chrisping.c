@@ -1,6 +1,54 @@
 /* chrisping.c */
 #include "chrisping.h"
 
+bool sendip(int32 s, ip *pkt) {
+    int8 *raw;
+    int16 n;
+    signed int ret;
+
+    if (!s || !pkt)
+        return false;
+
+    raw = eval(pkt);
+    n =
+    (
+        sizeof(struct s_rawip)
+        + sizeof(struct s_rawicmp)
+        + pkt->payload->size
+    );
+
+    ret = sendto($i s, raw, $i n, 0 /**MSG_DONTWAIT */,
+        (const struct sockaddr *)0, 0);
+
+    if (ret < 0)
+        return false;
+    else
+        return true;
+
+}
+
+int32 setup() {
+    int32 s, one;
+    signed int tmp;
+
+    one = $4 1;
+    tmp = socket(AF_INET, SOCK_RAW, 1);
+    if (tmp > 2)
+        s = $4 tmp;
+    else
+        s = $4 0;
+
+    tmp = setsockopt($i s, SOL_IP, IP_HDRINCL,
+        (int *)&one, sizeof(int32));
+
+    //printf("%d\n", tmp);
+
+    if (tmp)
+        return $4 0;
+
+    return s;
+}
+
 ip *mkip(type kind, const int8 *src, const int8 *dst, int16 id_, int16 *cntptr) {
     int16 id;
     int16 size;
@@ -249,13 +297,28 @@ void showicmp(int8 *ident, icmp *pkt) {
     return;
 }
 
-int main(int argc, char *argv[]) {
+int main2(int argc, char *argv[]) {
+    int32 s;
+
+    s = setup();
+    if (s)
+        printf("s=%d\n", $i s);
+    else
+        printf("err\n");
+    close(s);
+
+    return 0;
+}
+
+int main1(int argc, char *argv[]) {
     int8 *str;
     int8 *raw;
     icmp *icmppkt;
     int16 rnd;
     ip *ippkt;
     int16 size;
+    int32 s;
+    bool ret;
 
     (void)rnd;
     srand(getpid());
@@ -269,7 +332,7 @@ int main(int argc, char *argv[]) {
     icmppkt = mkicmp(echo, str, $2 5);
     assert(icmppkt);
 
-    ippkt = mkip(L4icmp, $1 "192.168.10.5", $1 "8.8.8.8", 0, &rnd);
+    ippkt = mkip(L4icmp, $1 "192.168.1.100", $1 "8.8.8.8", 0, &rnd);
     assert(ippkt);
     ippkt->payload = icmppkt;
 
@@ -279,9 +342,26 @@ int main(int argc, char *argv[]) {
     show(ippkt);
     printhex(raw, size, ' ');
 
+    s = setup();
+    if  (!s) {
+        printf("error\n");
+        return -1;
+    }
+
+    ret = sendip(s, ippkt);
+    printf("ret=%s\n", 
+        (ret) ?
+            "true" :
+            "false"
+    );
+
     free(icmppkt->data);
     free(icmppkt);
     free(ippkt);
     
     return 0;
+}
+
+int main(int argc, char *argv[]) {
+    return main1(argc, argv);
 }
