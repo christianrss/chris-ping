@@ -5,9 +5,12 @@ bool sendip(int32 s, ip *pkt) {
     int8 *raw;
     int16 n;
     signed int ret;
+    struct sockaddr_in sock;
 
     if (!s || !pkt)
         return false;
+
+    zero($1 &sock, sizeof(sock));
 
     raw = eval(pkt);
     n =
@@ -17,8 +20,9 @@ bool sendip(int32 s, ip *pkt) {
         + pkt->payload->size
     );
 
+    sock.sin_addr.s_addr = (in_addr_t)pkt->dst;
     ret = sendto($i s, raw, $i n, 0 /**MSG_DONTWAIT */,
-        (const struct sockaddr *)0, 0);
+        (const struct sockaddr *)&sock, sizeof(sock));
 
     if (ret < 0)
         return false;
@@ -332,7 +336,7 @@ int main1(int argc, char *argv[]) {
     icmppkt = mkicmp(echo, str, $2 5);
     assert(icmppkt);
 
-    ippkt = mkip(L4icmp, $1 "192.168.1.100", $1 "8.8.8.8", 0, &rnd);
+    ippkt = mkip(L4icmp, $1 "172.20.42.30", $1 "8.8.8.8", 0, &rnd);
     assert(ippkt);
     ippkt->payload = icmppkt;
 
