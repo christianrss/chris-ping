@@ -68,8 +68,8 @@ struct s_ip {
 typedef struct s_ip ip;
 
 struct s_rawip {
-    int8 version:4;
     int8 ihl:4;
+    int8 version:4;
     int8 dscp:6;
     int8 ecn:2;
     int16 length;

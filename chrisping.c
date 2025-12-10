@@ -195,9 +195,11 @@ int8 *evalip(ip *pkt) {
     p += size;
 
     if (pkt->payload) {
+        size = (sizeof(struct s_rawicmp) +
+            pkt->payload->size);
         icmpptr = evalicmp(pkt->payload);
         if (icmpptr) {
-            copy(p, icmpptr, pkt->payload->size);
+            copy(p, icmpptr, size);
             free(icmpptr);
         }
     }
