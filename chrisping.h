@@ -68,8 +68,8 @@ struct s_ip {
 typedef struct s_ip ip;
 
 struct s_rawip {
-    int8 version:4;
     int8 ihl:4;
+    int8 version:4;
     int8 dscp:6;
     int8 ecn:2;
     int16 length;
@@ -82,6 +82,12 @@ struct s_rawip {
     int32 src;
     int32 dst;
     int8 options[];
+} packed;
+
+struct s_ping {
+    int16 id;
+    int16 seq;
+    int8 data[];
 } packed;
 
 int main(int,char**);
