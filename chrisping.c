@@ -20,6 +20,7 @@ bool sendip(int32 s, ip *pkt) {
         + pkt->payload->size
     );
 
+    sock.sin_family = AF_INET;
     sock.sin_addr.s_addr = (in_addr_t)pkt->dst;
     ret = sendto($i s, raw, $i n, 0 /**MSG_DONTWAIT */,
         (const struct sockaddr *)&sock, sizeof(sock));
@@ -317,7 +318,7 @@ int main2(int argc, char *argv[]) {
 }
 
 int main1(int argc, char *argv[]) {
-    int8 *str;
+    struct s_ping *str;
     int8 *raw;
     icmp *icmppkt;
     int16 rnd;
@@ -330,15 +331,19 @@ int main1(int argc, char *argv[]) {
     srand(getpid());
     rnd = (rand() % 50000);
 
-    str = $1 malloc(6);
+    size = (sizeof(struct s_ping)
+        + 4);
+    str = (struct s_ping *) malloc($i size);
     assert(str);
-    zero(str, $2 6);
-    strncpy($c str, "Hello", 5);
+    zero($1 str, size);
+    str->id = endian16(5000);
+    str->seq = endian16(1);
+    strncpy($c str->data, "abc", 3);
 
-    icmppkt = mkicmp(echo, str, $2 5);
+    icmppkt = mkicmp(echo, $1 str, size);
     assert(icmppkt);
 
-    ippkt = mkip(L4icmp, $1 "172.20.42.30", $1 "8.8.8.8", 0, &rnd);
+    ippkt = mkip(L4icmp, $1 "172.20.42.30", $1 "172.20.47.255", 0, &rnd);
     assert(ippkt);
     ippkt->payload = icmppkt;
 

@@ -84,6 +84,12 @@ struct s_rawip {
     int8 options[];
 } packed;
 
+struct s_ping {
+    int16 id;
+    int16 seq;
+    int8 data[];
+} packed;
+
 int main(int,char**);
 void copy(int8*,int8*,int16);
 int16 checksum(int8*,int16);
