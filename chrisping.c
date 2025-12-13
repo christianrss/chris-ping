@@ -134,7 +134,7 @@ int16 checksum(int8 *pkt, int16 size) {
 
     ret = ~(sum+carry);
 
-    return endian16(ret);
+    return ret;
 }
 
 int8 *evalip(ip *pkt) {
